@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Welcome to the Fruit Selector</title>
+  <script src="https://unpkg.com/vue"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+</head>
+
+<body>
+  <div id="app">
+    <v-main>
+      <v-container>
+        <v-radio-group v-model="chosenFruit">
+          <v-radio
+            v-for="n in fruitList"
+            :key="n"
+            :label="n"
+            :value="n"
+          ></v-radio>
+        </v-radio-group>
+        <p>Chosen Fruit is {{ chosenFruit }}</p>
+      </v-container>
+    </v-main>
+
+  </div>
+
+  <script>
+    var app = new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+
+      data: {
+        fruitList: ["Apple", "Banana", "Pear"],
+        chosenFruit:""
+      },
+      methods: {
+        onFruitSelect: async function () {
+
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>
