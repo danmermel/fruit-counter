@@ -1,82 +1,88 @@
-const express = require('express');
+// express webserver https://www.npmjs.com/package/express
+// & HTTP body parsing middleware https://www.npmjs.com/package/body-parser
+const express = require('express')
 const bodyParser = require('body-parser')
-const { CloudantV1 } = require('@ibm-cloud/cloudant');
-const client = CloudantV1.newInstance();
+
+// the official Node.js Cloudant library - https://www.npmjs.com/package/@ibm-cloud/cloudant
+const { CloudantV1 } = require('@ibm-cloud/cloudant')
+const client = CloudantV1.newInstance()
 const DBNAME = process.env.DBNAME
 
-//create the index on fruit (design document)
+// constants
+const PORT = 8080 // the default for Code Engine
+const HOST = '0.0.0.0' // listen on all network interfaces
+const DESIGN_DOC = 'fruitCounter'
 
-
-// Constants
-const PORT = 8080;
-const HOST = '0.0.0.0';
-
-// App
-const app = express();
+// the express app with:
+// - static middleware serving out the 'public' directory as a static website
+// - the HTTP body parsing middleware to handling POSTed HTTP bodies
+const app = express()
 app.use(express.static('public'))
 app.use(bodyParser.json())
 
-const createDesignDoc =  async function () {
+// utility function to create a design document to count the frequency of each fruit type
+const createDesignDoc = async function () {
   // for more information on Cloudant design documents see https://cloud.ibm.com/docs/Cloudant?topic=Cloudant-views-mapreduce
-  //first see if the ddoc already exists
-  
+  // first see if the ddoc already exists
+
   try {
+    // if the design document exists
     await client.getDesignDocument({
       db: DBNAME,
-      ddoc: 'fruitCounter'
+      ddoc: DESIGN_DOC
     })
-    console.log("design document exists")
 
-
+    // nothing to do, it already exists
+    console.log('design document exists')
   } catch (e) {
-    //does not exist, so create it
-    console.log("Creating design document")
+    // does not exist, so create it
+    console.log('Creating design document')
     const designDoc = {
-      "views": {
-        "test": {
-          "reduce": "_count",
-          "map": "function (doc) {\n  emit(doc.fruit, null);\n}"
+      views: {
+        test: {
+          // count occurrences within the index
+          reduce: '_count',
+          // simple map function to create an index on the 'fruit' attribute
+          map: 'function (doc) {\n  emit(doc.fruit, null);\n}'
         }
-      },
+      }
     }
-    
     await client.putDesignDocument({
       db: DBNAME,
       designDocument: designDoc,
-      ddoc: 'fruitCounter'
+      ddoc: DESIGN_DOC
     })
-      
   }
-  
 }
-
 createDesignDoc()
 
+// respond to POST requests to the /fruit endpoint
 app.post('/fruit', async (req, res) => {
-  console.log(req.body);
+  // extract the chosen fruit from the POSted body
   const fruit = req.body.fruit
-  const fruitDocument = { 
+
+  // build the document to save to Cloudant
+  const fruitDocument = {
     fruit: fruit,
     timestamp: new Date().toISOString()
-  };
+  }
 
   // Save the document in the database
-  const response = await client.postDocument({
+  await client.postDocument({
     db: DBNAME,
-    document: fruitDocument,
-  });
-  console.log(response)
-  // now retrieve totals
+    document: fruitDocument
+  })
+
+  // now retrieve totals using a MapReduce view
   const totals = await client.postView({
     db: DBNAME,
-    ddoc: 'fruitCounter',
+    ddoc: DESIGN_DOC,
     view: 'test',
     group: true
   })
-  console.log(JSON.stringify(totals.result.rows))
-  res.send({"totals":totals.result.rows})
-});
+  res.send({ totals: totals.result.rows })
+})
 
-
-app.listen(PORT, HOST);
-console.log(`Running on http://${HOST}:${PORT}`);
+// start the webserver
+app.listen(PORT, HOST)
+console.log(`Running on http://${HOST}:${PORT}`)
