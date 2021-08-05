@@ -16,16 +16,22 @@
 <body>
   <div id="app">
     <v-main>
-      <v-container>
+      <v-container v-if="!fruitSubmitted">
         <v-radio-group v-model="chosenFruit">
-          <v-radio
-            v-for="n in fruitList"
-            :key="n"
-            :label="n"
-            :value="n"
-          ></v-radio>
+          <v-radio v-for="n in fruitList" :key="n" :label="n" :value="n"></v-radio>
         </v-radio-group>
         <p>Chosen Fruit is {{ chosenFruit }}</p>
+        <v-btn :disabled="!chosenFruit" color="primary" large @click="onFruitSelect">
+          Save Fruit!
+        </v-btn>
+      </v-container>
+      <v-container v-if="fruitSubmitted">
+        <v-list>
+          <v-list-item v-for="item in totals" :key="item.key">
+            {{ item.key}} : {{ item.value}}
+          </v-list-item>
+        </v-list>
+        <p>Fruit has been chosen!</p>
       </v-container>
     </v-main>
 
@@ -38,11 +44,34 @@
 
       data: {
         fruitList: ["Apple", "Banana", "Pear"],
-        chosenFruit:""
+        chosenFruit: "",
+        fruitSubmitted: false,
+        totals: []
       },
       methods: {
         onFruitSelect: async function () {
+          this.fruitSubmitted = true
+          console.log("Chosen Fruit is ", this.chosenFruit)
+          const url = window.location.origin + '/fruit'
+          console.log(url)
 
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                // your expected POST request payload goes here
+                fruit: this.chosenFruit
+              })
+            });
+            const data = await response.json();
+            // enter you logic when the fetch is successful
+            console.log(data.totals);
+            this.totals = data.totals
+          } catch (error) {
+            // enter your logic for when there is an error (ex. error toast)
+            console.log(error)
+          }
         }
       }
     })
