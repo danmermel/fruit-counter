@@ -1,71 +1,73 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <title>Welcome to the Fruit Selector</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
-
 </head>
-
 <body>
-  <div id="app">
+  <v-app id="app">
     <v-main>
       <v-container v-if="!fruitSubmitted">
+        <!-- form to collect chosen fruit -->
         <v-radio-group v-model="chosenFruit">
           <v-radio v-for="n in fruitList" :key="n" :label="n" :value="n"></v-radio>
         </v-radio-group>
         <p>Chosen Fruit is {{ chosenFruit }}</p>
+
+        <!-- button to trigger saving of chosen fruit -->
         <v-btn :disabled="!chosenFruit" color="primary" large @click="onFruitSelect">
           Save Fruit!
         </v-btn>
       </v-container>
+
       <v-container v-if="fruitSubmitted">
+        <!-- leaderboard of most popular fruits -->
+        <v-subheader>Leaderboard</v-subheader>
         <v-list>
           <v-list-item v-for="item in totals" :key="item.key">
             {{ item.key}} : {{ item.value}}
           </v-list-item>
         </v-list>
-        <p>Fruit has been chosen!</p>
       </v-container>
     </v-main>
 
-  </div>
-  <script src="https://unpkg.com/vue"></script>
+  </v-app>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
 
   <script>
+    // Vue.js app to coordinate collection of chosen fruit and to handle
+    // the 'Save Fruit' button press
     var app = new Vue({
       el: '#app',
       vuetify: new Vuetify(),
-
       data: {
-        fruitList: ["Apple", "Banana", "Pear"],
-        chosenFruit: "",
+        fruitList: ['Apple', 'Banana', 'Pear'],
+        chosenFruit: '',
         fruitSubmitted: false,
         totals: []
       },
       methods: {
         onFruitSelect: async function () {
           this.fruitSubmitted = true
-          console.log("Chosen Fruit is ", this.chosenFruit)
-          const url = window.location.origin + '/fruit'
-          console.log(url)
 
+          // calculate the URL of the server-side process
+          const url = window.location.origin + '/fruit'
+
+          // try posting to the /fruit endpoint to register a new data point
           try {
             const response = await fetch(url, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                // your expected POST request payload goes here
-                fruit: this.chosenFruit
-              })
+              body: JSON.stringify({ fruit: this.chosenFruit })
             });
             const data = await response.json();
-            // enter you logic when the fetch is successful
-            console.log(data.totals);
+
+            // the response contains the current leaderboard which we store
+            // in the the 'this.totals' array for rendering in HTML
             this.totals = data.totals
           } catch (error) {
             // enter your logic for when there is an error (ex. error toast)
@@ -76,5 +78,4 @@
     })
   </script>
 </body>
-
 </html>
