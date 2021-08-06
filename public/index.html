@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Welcome to the Fruit Selector</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
@@ -7,31 +8,50 @@
   <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
+
 <body>
   <v-app id="app">
     <v-main>
-      <v-container v-if="!fruitSubmitted">
+      <v-card class="mx-auto" max-width="500" v-if="!fruitSubmitted">
+        <v-card-title>Welcome to the Fruit Picker</v-card-title>
+        <v-card-subtitle>Choose your favourite fruit. Submit your choice to see the global results.</v-card-subtitle>
         <!-- form to collect chosen fruit -->
         <v-radio-group v-model="chosenFruit">
           <v-radio v-for="n in fruitList" :key="n" :label="n" :value="n"></v-radio>
         </v-radio-group>
-        <p>Chosen Fruit is {{ chosenFruit }}</p>
-
         <!-- button to trigger saving of chosen fruit -->
-        <v-btn :disabled="!chosenFruit" color="primary" large @click="onFruitSelect">
-          Save Fruit!
-        </v-btn>
-      </v-container>
+        <v-card-actions >
+          <v-btn :disabled="!chosenFruit" color="primary" large @click="onFruitSelect">
+            Save Fruit!
+          </v-btn>
+        </v-card-actions>
+      </v-card>
 
-      <v-container v-if="fruitSubmitted">
+      <v-card class="mx-auto" max-width="500" v-if="fruitSubmitted">
         <!-- leaderboard of most popular fruits -->
-        <v-subheader>Leaderboard</v-subheader>
-        <v-list>
-          <v-list-item v-for="item in totals" :key="item.key">
-            {{ item.key}} : {{ item.value}}
-          </v-list-item>
-        </v-list>
-      </v-container>
+        <v-card-title>Leaderboard</v-card-title>
+        <v-card-subtitle>The fruit story so far</v-card-subtitle>
+        <v-simple-table>
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th class="text-left">
+                  Fruit
+                </th>
+                <th class="text-left">
+                  Votes
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in totals" :key="item.key"   >
+                <td>{{ item.key }}</td>
+                <td>{{ item.value }}</td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+      </v-card>
     </v-main>
 
   </v-app>
@@ -45,7 +65,7 @@
       el: '#app',
       vuetify: new Vuetify(),
       data: {
-        fruitList: ['Apple', 'Banana', 'Pear'],
+        fruitList: ['Apple', 'Banana', 'Melon', 'Orange', 'Pear'],
         chosenFruit: '',
         fruitSubmitted: false,
         totals: []
@@ -69,6 +89,7 @@
             // the response contains the current leaderboard which we store
             // in the the 'this.totals' array for rendering in HTML
             this.totals = data.totals
+            console.log(this.totals)
           } catch (error) {
             // enter your logic for when there is an error (ex. error toast)
             console.log(error)
@@ -78,4 +99,5 @@
     })
   </script>
 </body>
+
 </html>
